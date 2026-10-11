@@ -41,7 +41,7 @@ function categoriaValida(string $categoria, array $categorias): bool
             $posicion = array_search($categoria, $categorias, true);
 
             return $posicion !== false;
-
+s
         */
 }
 
@@ -50,14 +50,15 @@ function plazasOcupadas(array $reservas, int $actividadId): int
     $reservasFiltradas = array_filter(
         $reservas,
         fn(array $reserva): bool =>
-            $reserva['actividadId'] === 'actividadId'
+            $reserva['actividadId'] === $actividadId
             &&
             $reserva['estado'] === 'confirmada'
     );
 
+
     return array_reduce(
         $reservasFiltradas,
-        fn(array $reserva, int $suma): int =>
+        fn(int $suma, array $reserva): int =>
             $suma + $reserva['plazas'],
         0
     );
@@ -143,28 +144,28 @@ function filtrarActividades(
 
 
 
-// USANDO TERNARIO
+//USANDO TERNARIO
 
-// function ordenarActividades(array $actividades, string $orden): array
-// {
-//     // TODO 4: ordenar una copia según el criterio y desempatar por id.
-//     usort (
-//         $actividades,
-//         function (array $a, array $b) use ($orden):int {
+function ordenarActividades(array $actividades, string $orden): array
+{
+    // TODO 4: ordenar una copia según el criterio y desempatar por id.
+    usort (
+        $actividades,
+        function (array $a, array $b) use ($orden):int {
 
-//             $resultado = $orden === 'libres' 
-//                 ? $a['libres'] <=> $b['libres']
-//                 : normalizarBusqueda($a['nombre'])
-//                     <=> normalizarBusqueda($b['nombre']);
+            $resultado = $orden === 'libres' 
+                ? $a['libres'] <=> $b['libres']
+                : normalizarBusqueda($a['nombre'])
+                    <=> normalizarBusqueda($b['nombre']);
 
-//             return $resultado === 0
-//                 ? $a['id'] <=> $b['id']
-//                 : $resultado;
+            return $resultado === 0
+                ? $a['id'] <=> $b['id']
+                : $resultado;
 
-//         }
-//     );
-//     return $actividades;
-// }
+        }
+    );
+    return $actividades;
+}
 
 
 
@@ -175,24 +176,29 @@ function resumirActividades(array $actividades): array
 {
     return [
         'cantidad' => count($actividades),
-        'capacidad' => count($actividades), // REVISAR: cuenta actividades, no plazas
+        'capacidad' => array_reduce(            // REVISAR: cuenta actividades, no plazas 🟢
+            $actividades,
+            fn(int $suma, array $actividad): int =>
+                $suma + $actividad['capacidad'],
+            0
+        ), 
         'ocupadas' => array_reduce(
             $actividades,
             fn(int $s, array $a): int => $s + $a['ocupadas'],
             0
         ),
-        'libres' => array_reduce(       // TODO 6: sumar plazas libres
+        'libres' => array_reduce(       // TODO 6: sumar plazas libres 🟢
             $actividades,
             fn(int $suma, array $actividad):int =>
                 $suma + $actividad['libres'],
             0
         ), 
-        'hayCompletas' => array_any(        // TODO 7: comprobar si alguna está completa
+        'hayCompletas' => array_any(        // TODO 7: comprobar si alguna está completa 🟢
             $actividades,
             fn(array $actividad): bool =>
                 $actividad['libres'] === 0
         ), 
-        'todasConPlazas' => array_all(      // TODO 8: comprobar si todas tienen plazas
+        'todasConPlazas' => array_all(      // TODO 8: comprobar si todas tienen plazas 🟢
             $actividades,
             fn (array $actividad): bool =>
                 $actividad['libres'] > 0
@@ -208,11 +214,17 @@ function transformarNombres(array $nombres, callable $callback): array
 
 function generarEtiquetas(array $actividades, string $prefijo = 'Actividad: '): array
 {
-    // TODO 9: extraer nombres y usar una closure que capture el prefijo.
-    return [];
+    // TODO 9: extraer nombres y usar una closure que capture el prefijo. 🟢
+    $nombres = array_column($actividades, 'nombre');
+    return transformarNombres($nombres, 
+        function (String $nombre) use ($prefijo): string {
+            return $prefijo . limpiarEspacios($nombre);
+        }
+    );
 }
 
-// Función facilitada. La entrada web valida el id antes de llamar.
+
+// Función facilitada. La entrada web valida el id antes de llamar. 
 function normalizarId(int|string $id): int
 {
     return (int) $id;
@@ -220,22 +232,26 @@ function normalizarId(int|string $id): int
 
 function buscarPorId(array $actividades, int|string $id): ?array
 {
-    // TODO 10: buscar por id en todas las actividades; id no es índice.
-    return null;
+    // TODO 10: buscar por id en todas las actividades; id no es índice. 🟢
+    $idNormalizado = normalizarId($id);
+    return array_find(
+        $actividades,
+        fn(array $actividad):bool => $actividad['id'] === $idNormalizado
+    );
 }
 
 function monitorVisible(?string $monitor): string
 {
-    // TODO 11: resolver el caso de monitor null.
-    return '';
+    // TODO 11: resolver el caso de monitor null.   🟢
+    return $monitor === null ? 'Monitor pendiente' : $monitor;
 }
 
-function inicioNombre(string $nombre): string
+function inicioNombre(string $nombre): string  
 {  
-    return substr(limpiarEspacios($nombre), 0, 3);
+    return mb_substr(limpiarEspacios($nombre), 0, 3, 'UTF-8');
 }
 
 function codigoValido(string $codigo): bool
 {
-    return preg_match('/DEP-[0-9]+-[0-9]+/', $codigo) === 1;
+    return preg_match('/^DEP-[0-9]{4}-[0-9]{4}$/', $codigo) === 1;
 }
