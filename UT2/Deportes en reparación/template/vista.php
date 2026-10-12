@@ -1,3 +1,19 @@
+<?php 
+/**@var string $texto */
+/**@var array $categorias */
+/**@var string $categoria */
+/**@var string $orden */
+/**@var bool $conPlazas */
+/**@var array $resumen */
+/**@var array $visibles */
+/**@var string $id */
+/**@var array $reservasFicha */
+/**@var string $codigo */
+/**@var bool $validacionCodigo */
+/**@var array $etiquetas */
+?>
+
+
 <!doctype html>
 <html lang="es">
 

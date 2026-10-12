@@ -6,7 +6,7 @@ function limpiarEspacios(string $texto): string
 {
     // TODO 1: limpiar extremos y agrupar espacios consecutivos.🟢
     $texto = trim($texto);
-    $texto = preg_replace('/\S+/', ' ', $texto);
+    $texto = preg_replace('/\s+/', ' ', $texto);
 
     return $texto;
 }
