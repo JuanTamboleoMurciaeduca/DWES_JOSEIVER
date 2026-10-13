@@ -5,24 +5,32 @@ declare(strict_types=1);
 function limpiarEspacios(string $texto): string
 {
     // TODO 1: limpiar extremos y agrupar espacios consecutivos.
+    $texto = preg_replace('/\s+/', ' ', trim($texto));
     return $texto;
 }
 
 function normalizarBusqueda(string $texto): string
 {
     // REVISAR: ¿funciona con CÁMARA y ÓRBITA?
-    return strtolower(limpiarEspacios($texto));
+    return mb_strtolower(limpiarEspacios($texto), 'UTF-8');
 }
 
 function obtenerCategorias(array $equipos): array
 {
     // TODO 2: extraer categorías sin duplicados en orden de aparición.
-    return [];
+    $categorias = array_column($equipos, 'categoria');
+    $categorias = array_unique($categorias);
+    $categorias = array_values($categorias);
+
+    return $categorias;
 }
 
-function categoriaValida(string $categoria, array $categorias): bool
+function categoriaValida(string $categoria, array $categorias): bool // aqui (bool) es necsario¿¿ convierte 0 en false
 {
-    return $categoria === '' || (bool) array_search($categoria, $categorias, true);
+    return $categoria === ''
+        ||
+        array_search($categoria, $categorias, true) !== false;
+
 }
 
 function unidadesPrestadas(array $prestamos, int $equipoId): int
@@ -53,7 +61,20 @@ function filtrarEquipos(
 ): array
 {
     // TODO 3: filtrar por nombre, categoría y unidades disponibles.
-    return [];
+    $textoNormalizado = normalizarBusqueda($texto);
+
+    $equiposFiltrados = array_filter(
+        $equipos,
+        fn(array $equipo): bool => 
+            str_contains(normalizarBusqueda($equipo['nombre']), $textoNormalizado ) 
+            && 
+            ($equipo['categoria'] === $categoria || $categoria === '')
+            &&
+            // ($soloDisponibles === false || ($soloDisponibles === true && $equipo['disponibles'] > 0)) SE PUEDE SIMPLIFICAR 👇 
+            ($soloDisponibles === false || $equipo['disponibles'] > 0)
+
+    );
+    return $equiposFiltrados;
 }
 
 function ordenarEquipos(array $equipos, string $orden): array
