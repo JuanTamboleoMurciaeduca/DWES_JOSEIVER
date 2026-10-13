@@ -38,7 +38,7 @@ $orden = in_array($orden, ['nombre', 'disponibles'], true)
     : 'nombre'; 
 
 if(!categoriaValida($categoria, $categorias)){
-        $aviso = '.';
+        $aviso = 'La categoría seleccionada no es válida.';
         $categoria = '';
     }
 // TODO E4: llamar al filtrado y ordenación; preparar el resumen y las etiquetas del listado.
