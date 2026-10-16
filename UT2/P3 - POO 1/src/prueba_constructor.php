@@ -17,9 +17,15 @@ $libro = new Libro(1, 'Dune', 412, $autor, $categoria);
 
 $libro->disponible;
 
-$libro2 = new libro(1, 'Dune', 412, $autor, $categoria, false);
+$libro2 = new Libro(1, 'Dune', 412, $autor, $categoria, false);
 $libro2->disponible;
 
 
 // Fase 3.2: sustituye las pruebas anteriores por un Libro construido
 // con las variables $titulo y $paginas. Muestra ambas propiedades.
+$titulo = ' Dune ';
+$paginas = 412;
+
+$libroCompleto = new Libro(1, $titulo, $paginas, $autor, $categoria);
+echo $libroCompleto->titulo;
+echo $libroCompleto->paginas;

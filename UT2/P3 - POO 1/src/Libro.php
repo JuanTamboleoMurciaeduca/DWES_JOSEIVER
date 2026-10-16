@@ -8,13 +8,14 @@ final class Libro
         public int $id,
         public string $titulo,
         public int $paginas,
-        public Autor $autor,
+        public ?Autor $autor,
         public Categoria $categoria,
         public bool $disponible = true
         )
         {
         // Fase 3: título sin espacios en los extremos y valores por defecto si no es válido o las páginas no son positivas.
         $this->titulo = trim($titulo);
+        $this->titulo = $this->titulo === ''? 'Sin título' : $this->titulo;
         $this->paginas = $paginas > 0 ? $paginas : 1;
 
         }
