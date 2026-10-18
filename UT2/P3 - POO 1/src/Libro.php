@@ -18,6 +18,18 @@ final class Libro
         $this->titulo = $this->titulo === ''? 'Sin título' : $this->titulo;
         $this->paginas = $paginas > 0 ? $paginas : 1;
 
-        }
+    }
     // Fase 5: prestar(), devolver() y ficha().
+    public function prestar(): void {
+        $this->disponible = false;
+    }
+
+    public function devolver(): void {
+        $this->disponible = true;
+    }
+
+    public function ficha(): string {
+        return $this->titulo . ' / ' .  ($this->autor?->nombre ?? 'Sin autor') . ' / ' 
+            . $this->categoria->nombre . ' / ' . $this->paginas . ' paginas';
+    }
 }

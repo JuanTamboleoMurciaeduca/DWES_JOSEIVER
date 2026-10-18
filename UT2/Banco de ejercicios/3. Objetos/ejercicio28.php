@@ -16,7 +16,7 @@
             public string $autor,
             public int $paginas > 1,
             public bool $disponible = true
-            ) {}
+        ) {}
 
         // Métodos
         // Ejercicio 29
