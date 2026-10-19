@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 // TODO M3. Implementa el trait GeneraEtiqueta usando id() y nombre().
-trait GenerarEtiqueta{
+trait GeneraEtiqueta{
     public function etiqueta(): string{
-        return id() . ' · ' . nombre();
+        return $this->id() . ' · ' . $this->nombre();
     }
 }
