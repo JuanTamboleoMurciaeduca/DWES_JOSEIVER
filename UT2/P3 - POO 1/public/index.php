@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Autor.php';
@@ -11,7 +12,7 @@ $libros = [];
 
 foreach ($datos as $registro) {
     $autor = $registro['autor'] === null
-        ? null 
+        ? null
         : new Autor($registro['autor']);
     $categoria = new Categoria($registro['categoria']);
     $libros[] = new Libro(
@@ -78,26 +79,28 @@ $orden = is_string($ordenEntrada)
 $busqueda = mb_strtolower(trim($entradaBusqueda), 'UTF-8');
 $visibles = $libros;
 
-$visibles = array_filter($libros, fn($libro) =>
+$visibles = array_filter(
+    $libros,
+    fn(Libro $libro) =>
     str_contains(mb_strtolower($libro->titulo, 'UTF-8'), $busqueda)
-    &&
-    ($soloDisponibles === false || $libro->disponible === true)
+        &&
+        (!$soloDisponibles || $libro->disponible)
 );
 
 // Fase 6.2: ordena $visibles mediante usort y <=>.
-if($orden === 'paginas'){
+if ($orden === 'paginas') {
     usort(
         $visibles,
         fn($a, $b) =>
-            $a->paginas <=> $b->paginas
-    ); 
+        $a->paginas <=> $b->paginas
+    );
 }
 
-if($orden === 'titulo'){
+if ($orden === 'titulo') {
     usort(
         $visibles,
         fn($a, $b) =>
-            $a->titulo <=> $b->titulo
+        $a->titulo <=> $b->titulo
     );
 }
 
@@ -106,16 +109,21 @@ if($orden === 'titulo'){
 // Completa disponibles con array_filter y paginas con array_reduce.
 
 $totalDisponibles = array_filter(
-                        $libros, fn(Libro $libro) =>
-                            $libro->disponible === true
-                    );
+    $libros,
+    fn(Libro $libro) =>
+    $libro->disponible
+);
 
-$resumen = ['total' => count($libros),
-                'disponibles' => count($totalDisponibles),
-                'paginas' => array_reduce($libros, fn(int $acumulador, Libro $libro) =>
-                    $acumulador += $libro->paginas
-                , 0)
-            ];
+$resumen = [
+    'total' => count($libros),
+    'disponibles' => count($totalDisponibles),
+    'paginas' => array_reduce(
+        $libros,
+        fn(int $acumulador, Libro $libro) =>
+        $acumulador + $libro->paginas,
+        0
+    )
+];
 
 // Fase 6.3: crea las fichas de los libros visibles con array_map.
 $etiquetas = array_map(
@@ -126,19 +134,21 @@ $etiquetas = array_map(
 // Fase 6.3: busca los ids 30 y 999 con array_find y añade mensajes.
 $resultado1 = array_find(
     $libros,
-    fn(Libro $libro): bool => $libro->id === 30);
+    fn(Libro $libro): bool => $libro->id === 30
+);
 
 $resultado2 = array_find(
     $libros,
-    fn(Libro $libro): bool => $libro->id === 999);
+    fn(Libro $libro): bool => $libro->id === 999
+);
 
-if($resultado1 !== null){
+if ($resultado1 !== null) {
     $mensajes[] = "Se ha encontrado el libro con ID 30:  " . $resultado1->titulo;
-} else  {
+} else {
     $mensajes[] = "No se ha encontrado un título con ID: 30";
 }
 
-if($resultado2 !== null) {
+if ($resultado2 !== null) {
     $mensajes[] = "Se ha encontrado el libro con ID 999:  " . $resultado2->titulo;
 } else {
     $mensajes[] = "No se ha encontrado un título con ID: 999";
@@ -147,7 +157,7 @@ if($resultado2 !== null) {
 // mostrar Libro no encontrado cuando array_find devuelva null.
 $resultado999 = array_find(
     $libros,
-    fn(Libro $libro):bool => $libro->id === 999
+    fn(Libro $libro): bool => $libro->id === 999
 );
 
 $mensajes[] = 'Buscar id 999: ' . ($resultado999?->titulo ?? 'Libro no encontrado');
