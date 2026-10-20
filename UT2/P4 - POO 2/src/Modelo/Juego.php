@@ -58,4 +58,27 @@ abstract class Juego implements Prestable{
         $this->prestado = true;
         $this->dias = $dias;
     }
+
+    public function renovar(int $diasExtra): void {
+        if ($diasExtra < 1) {
+            throw new InvalidArgumentException('Los días extra deben ser mayor que cero');
+        }
+        if ($this->prestado === false) {
+            throw new PrestamoException('El juego no está prestado');
+        }
+        if (($this->dias + $diasExtra) > $this->plazoMaximo()) {
+            throw new PrestamoException('El número de dias supera el plazo maximo');
+        }
+
+        $this->dias += $diasExtra;
+    }
+
+    public function devolver(): void {
+        if ($this->prestado === false) {
+            throw new PrestamoException('No se puede devolver un juego que ya está disponible');
+        }
+
+        $this->prestado = false;
+        $this->dias = 0;
+    }
 }
