@@ -5,7 +5,7 @@ declare(strict_types=1);
 class Videojuego extends Juego {
     private string $plataforma;
 
-    #[Override]
+    // #[Override]
     public function __construct(int $id, string $nombre, string $plataforma){
         parent::__construct($id, $nombre);
 
@@ -22,12 +22,12 @@ class Videojuego extends Juego {
         return $this->plataforma;
     }
 
-    #[Override]
+    // #[Override]
     public function plazoMaximo(): int {
         return 7;
     }
 
-    #[Override]
+    // #[Override]
     public function ficha(): string
     {
         return parent::ficha() . ' · Plataforma: ' . $this->plataforma;

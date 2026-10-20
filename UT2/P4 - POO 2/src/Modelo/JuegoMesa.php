@@ -5,7 +5,7 @@ declare(strict_types=1);
 class JuegoMesa extends Juego {
     private int $jugadores;
 
-    #[Override]
+    // #[Override]
     public function __construct(int $id, string $nombre, int $jugadores){
         
         parent::__construct($id, $nombre);
@@ -21,12 +21,12 @@ class JuegoMesa extends Juego {
         return $this->jugadores;
     }
 
-    #[Override]
+    // #[Override]
     public function plazoMaximo(): int {
         return 14;
     }
 
-    #[Override]
+    // #[Override]
     public function ficha(): string{
         return parent::ficha() . ' · Jugadores: ' . $this->jugadores;
     }
