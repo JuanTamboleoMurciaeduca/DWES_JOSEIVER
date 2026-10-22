@@ -32,4 +32,18 @@ abstract class Envio {
 
     public function estado(): EstadoEnvio {return $this->estado;}
 
+    public function tarifa(): int {
+        $bloques = ceil($this->peso / 1000);
+        $precioBloque = $this->precioBloque();
+        $cuotaFija =$this->cuotaFija();
+
+        return $cuotaFija + ($bloques * $precioBloque);
+    }
+
+    public abstract function modalidad(): string;
+
+    protected abstract function cuotaFija(): int;
+
+    protected abstract function precioBloque(): int;
+
 }
