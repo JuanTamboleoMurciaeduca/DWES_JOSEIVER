@@ -2,18 +2,15 @@
 
 namespace Clase\Alquileres\Modelo;
 
-use Override;
-
-abstract class AlquilerBicicleta extends Alquiler{
-    
-    #[Override]
+// No son abstractas
+class AlquilerBicicleta extends Alquiler
+{
     public function modalidad(): string
     {
         return 'bicicleta';
     }
 
-    #[Override]
-    public function tarifaDiaria(): int
+    protected function tarifaDiaria(): int
     {
         return 500;
     }
