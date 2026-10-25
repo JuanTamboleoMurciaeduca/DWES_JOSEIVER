@@ -4,13 +4,25 @@ declare(strict_types=1);
 function entrada(array $origen, string $clave, string $defecto = ''): string
 {
     // TODO F1. Lee solo cadenas y aplica el valor por defecto.
-    throw new LogicException("Pendiente: entrada.");
+
+    return isset($origen[$clave]) && is_string($origen[$clave])
+        ? $origen[$clave]
+        : $defecto;
 }
 
 function enteroPositivo(string $valor): int
 {
     // TODO F2. Valida antes de convertir; rechaza con InvalidArgumentException.
-    throw new LogicException("Pendiente: enteroPositivo.");
+
+    $resultado = filter_var($valor, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1],
+    ]);
+
+    if ($resultado === false) {
+        throw new InvalidArgumentException('Indica un entero positivo.');
+    }
+
+    return $resultado;
 }
 
 function limpiarEspacios(string $texto): string
@@ -26,7 +38,11 @@ function normalizar(string $texto): string
 function buscarPorId(array $actividades, int $id): ?Actividad
 {
     // TODO F3. Usa array_find con un callback tipado.
-    throw new LogicException("Pendiente: buscarPorId.");
+
+    return array_find(
+        $actividades,
+        fn (Actividad $a): bool => $a->id() === $id
+    );
 }
 
 function filtrarActividades(
@@ -34,13 +50,38 @@ function filtrarActividades(
     ?EstadoActividad $estado, bool $soloDisponibles
 ): array {
     // TODO F4. Combina las cuatro condiciones mediante array_filter.
-    throw new LogicException("Pendiente: filtrarActividades.");
+
+    $textoNormalizado = normalizar($texto);
+
+    $filtradas = array_filter(
+        $actividades,
+        function (Actividad $a) use ($textoNormalizado, $tipo, $estado, $soloDisponibles): bool {
+            $cumpleTexto = ($textoNormalizado === '' || str_contains(normalizar($a->nombre()), $textoNormalizado));
+            $cumpleTipo = ($tipo === '' || $a->tipo() === $tipo);
+            $cumpleEstado = ($estado === null || $a->estado() === $estado);
+            $cumpleDisponibles = (!$soloDisponibles || ($a->estado() === EstadoActividad::Abierta && $a->plazasLibres() > 0));
+
+            return $cumpleTexto && $cumpleTipo && $cumpleEstado && $cumpleDisponibles;
+        }
+    );
+
+    return array_values($filtradas);
 }
 
 function ordenarActividades(array $actividades, string $orden): array
 {
     // TODO F5. Ordena una copia con usort y desempata por id.
-    throw new LogicException("Pendiente: ordenarActividades.");
+
+    $copia = $actividades;
+    usort($copia, function (Actividad $a, Actividad $b) use ($orden): int {
+        $criterio = ($orden === 'libres')
+            ? ($a->plazasLibres() <=> $b->plazasLibres())
+            : (normalizar($a->nombre()) <=> normalizar($b->nombre()));
+
+        return $criterio !== 0 ? $criterio : ($a->id() <=> $b->id());
+    });
+
+    return $copia;
 }
 
 function transformarActividades(array $actividades, callable $transformacion): array
@@ -53,13 +94,37 @@ function generarEtiquetas(
 ): array
 {
     // TODO F6. Usa transformarActividades y una closure con use.
-    throw new LogicException("Pendiente: generarEtiquetas.");
+
+    return transformarActividades(
+        $actividades,
+        function (Actividad $a) use ($prefijo): string {
+            return $a->etiqueta($prefijo);
+        }
+    );
 }
 
 function resumirActividades(array $actividades): array
 {
     // TODO F7. Calcula las cinco magnitudes con array_reduce.
-    throw new LogicException("Pendiente: resumirActividades.");
+
+    return array_reduce(
+        $actividades,
+        function (array $acum, Actividad $a): array {
+            $acum['cantidad']++;
+            $acum['capacidad'] += $a->capacidad();
+            $acum['ocupadas'] += $a->ocupadas();
+            $acum['libres'] += $a->plazasLibres();
+            $acum['importe'] += $a->importe($a->ocupadas());
+            return $acum;
+        },
+        [
+            'cantidad' => 0,
+            'capacidad' => 0,
+            'ocupadas' => 0,
+            'libres' => 0,
+            'importe' => 0,
+        ]
+    );
 }
 
 function e(string $texto): string
