@@ -27,29 +27,87 @@ final class InventarioService
 
         // TODO F1: filtra con array_filter y devuelve claves consecutivas.
         $resultado = array_filter(
-            $repository,
-            fn ($item): bool => $item->nombreNormalizado() === $texto
-            ? true
-            : 
-        )
+            $this->repository->todos(),
+            fn (Equipo $equipo): bool => 
+                (str_contains($equipo->nombreNormalizado(), $texto))
+                &&
+                ($estado === null || $estado === $equipo->estado())
+                &&
+                (($equipo->estado() === EstadoEquipo::Disponible && $equipo->disponibles() >= $minDisponibles)
+                ||
+                $minDisponibles === 0
+                )
+        );
+        return array_values($resultado);
     }
 
     public function ordenar(array $equipos): array
     {
         // TODO F2: ordena una copia mediante usort y un callback.
-        throw new \LogicException('Pendiente F2');
+        $ordenados =$equipos;
+        
+        usort(
+            $ordenados,
+            function(Equipo $a, Equipo $b): int {
+                $porDisponibles = $b->disponibles() <=> $a->disponibles();
+                if($porDisponibles !== 0) {
+                    return $porDisponibles;
+                }
+
+                $porTarifa = $a->tarifaDia() <=> $b->tarifaDia();
+                if ($porTarifa !== 0){
+                    return $porTarifa;
+                }
+                
+                $porId = $a->id() <=> $b->id();
+                if ($porId !== 0) {
+                    return $porId;
+                }
+                return $porId;
+            }
+        );
+        return $ordenados;
     }
 
     public function fichas(array $equipos, string $prefijo = 'Equipo: '): array
     {
         // TODO F3: utiliza array_map y una arrow function.
-        throw new \LogicException('Pendiente F3');
+        $fichas = array_map(
+            fn (Equipo $equipo):string => $equipo->ficha($prefijo),
+            $equipos
+        );
+
+        return $fichas;
     }
 
     public function resumen(array $equipos): array
     {
         // TODO F4: acumula las tres cifras mediante array_reduce.
-        throw new \LogicException('Pendiente F4');
+        $unidades = array_reduce(
+            $equipos,
+            fn(int $acumulador, Equipo $equipo) => $acumulador + $equipo->unidades()
+            , 0
+        );
+
+        $reservadas = array_reduce($equipos,
+            fn(int $acumulador, Equipo $equipo) => $acumulador + $equipo->reservadas()
+            , 0
+        );
+
+        $valorDisponibleCentimos = array_reduce(
+            $equipos,
+            fn(int $acumulador, Equipo $equipo) => $acumulador + ($equipo->disponibles() * $equipo->tarifaDia())
+            , 0  
+        );
+
+        $resumen = [
+            'unidades' => $unidades,
+            'reservadas' => $reservadas,
+            'valorDisponibleCentimos' => $valorDisponibleCentimos
+        ];
+
+        return $resumen;
+    
     }
 
     public function presupuestarLotes(
@@ -66,14 +124,14 @@ final class InventarioService
             $this->repository->todos(),
             fn (Equipo $equipo): bool =>
                 $equipo->estado() === EstadoEquipo::Disponible
-                && $equipo->disponibles() > $cantidad
+                && $equipo->disponibles() >= $cantidad
         );
 
         $propuestas = array_map(
             fn (Equipo $equipo): array => [
                 'id' => $equipo->id(),
-                'importeCentimos' => $equipo->tarifaDia() * $dias,
-                'disponiblesDespues' => $equipo->unidades() - $cantidad
+                'importeCentimos' => $equipo->tarifaDia() * $dias * $cantidad,
+                'disponiblesDespues' => $equipo->disponibles() - $cantidad
             ],
             $candidatos
         );
@@ -81,8 +139,8 @@ final class InventarioService
         $opciones = array_reduce(
             $propuestas,
             function (array $resultado, array $propuesta) use ($presupuestoCentimos): array {
-                if ($propuesta['importeCentimos'] >= $presupuestoCentimos) {
-                    $resultado = [$propuesta];
+                if ($propuesta['importeCentimos'] <= $presupuestoCentimos) {
+                    $resultado[] = $propuesta;
                 }
 
                 return $resultado;
@@ -93,9 +151,9 @@ final class InventarioService
         usort(
             $opciones,
             fn (array $a, array $b): int =>
-                (($b['importeCentimos'] <=> $a['importeCentimos']) !== 0)
-                    ? ($b['importeCentimos'] <=> $a['importeCentimos'])
-                    : ($b['id'] <=> $a['id'])
+                (($a['importeCentimos'] <=> $b['importeCentimos']) !== 0)
+                    ? ($a['importeCentimos'] <=> $b['importeCentimos'])
+                    : ($a['id'] <=> $b['id'])
         );
 
         return $opciones;
