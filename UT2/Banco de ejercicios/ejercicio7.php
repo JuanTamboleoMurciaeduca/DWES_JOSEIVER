@@ -1,3 +1,0 @@
-<?php
-    // NO HACER ESTE EJERCICIO
-?>
