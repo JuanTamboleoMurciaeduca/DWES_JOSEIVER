@@ -11,27 +11,24 @@ use InvalidArgumentException;
 
 final class CatalogoService
 {
-    public function __construct(private CursoRepository $repository)
-    {
-    }
+    public function __construct(private CursoRepository $repository) {}
 
     public function filtrar(
         string $texto = '',
         ?EstadoCurso $estado = null,
         bool $soloConPlazas = false
-    ): array
-    {
+    ): array {
         $texto = mb_strtolower(trim($texto), 'UTF-8');
 
         // TODO F1: filtra los cursos mediante array_filter.
         $filtrado = array_filter(
             $this->repository->todos(),
             fn(Curso $curso) =>
-                str_contains($curso->nombreNormalizado(), $texto)
+            str_contains($curso->nombreNormalizado(), $texto)
                 &&
                 ($estado === null || $curso->estado() === $estado)
                 &&
-                ($soloConPlazas == false || $curso->estado() === EstadoCurso::Abierto && $curso->plazasLibres() > 0)
+                (!$soloConPlazas || ($curso->estado() === EstadoCurso::Abierto && $curso->plazasLibres() > 0))
         );
 
         return array_values($filtrado);
@@ -42,13 +39,11 @@ final class CatalogoService
         // TODO F2: ordena una copia mediante usort y un callback.
         $copia = $cursos;
 
-        usort($copia,
-            function(Curso $a, Curso $b):int {
-                $porPrecioPlaza = $a->precioPlaza() <=> $b->precioPlaza();
-                if ($porPrecioPlaza !== 0) {
-                    return $porPrecioPlaza;
-                }
-                return $a->id() <=> $b->id();
+        usort(
+            $copia,
+            function (Curso $a, Curso $b): int {
+                return ($a->precioPlaza() <=> $b->precioPlaza())
+                    ?: ($a->id() <=> $b->id());
             }
         );
 
@@ -99,13 +94,13 @@ final class CatalogoService
 
         $candidatos = array_filter(
             $this->repository->todos(),
-            fn (Curso $curso): bool =>
-                $curso->estado() === EstadoCurso::Abierto
+            fn(Curso $curso): bool =>
+            $curso->estado() === EstadoCurso::Abierto
                 && $curso->plazasLibres() >= $plazas
         );
 
         $propuestas = array_map(
-            fn (Curso $curso): array => [
+            fn(Curso $curso): array => [
                 'id' => $curso->id(),
                 'importeCentimos' => $curso->precioPlaza() * $plazas,
                 'libresDespues' => $curso->plazasLibres() - $plazas
@@ -119,7 +114,7 @@ final class CatalogoService
                 if ($propuesta['importeCentimos'] <= $presupuestoCentimos) {
                     $acumulado[] = $propuesta;
                 }
-                
+
                 return $acumulado;
             },
             []
@@ -127,10 +122,9 @@ final class CatalogoService
 
         usort(
             $resultado,
-            fn (array $a, array $b): int =>
-                (($a['importeCentimos'] <=> $b['importeCentimos']) !== 0)
-                    ? ($a['importeCentimos'] <=> $b['importeCentimos'])
-                    : ($a['id'] <=> $b['id'])
+            fn(array $a, array $b): int => (($a['importeCentimos'] <=> $b['importeCentimos']) !== 0)
+                ? ($a['importeCentimos'] <=> $b['importeCentimos'])
+                : ($a['id'] <=> $b['id'])
         );
 
         return $resultado;
@@ -164,5 +158,5 @@ final class CatalogoService
     //     }
 
     // }
-    
+
 }

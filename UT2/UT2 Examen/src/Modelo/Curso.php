@@ -85,7 +85,7 @@ abstract class Curso
             throw new CursoException('cantidad supera las plazas libres');
         }
 
-        $this->ocupadas += $cantidad; 
+        $this->ocupadas += $cantidad;
     }
 
     public function cancelar(int $cantidad): void
