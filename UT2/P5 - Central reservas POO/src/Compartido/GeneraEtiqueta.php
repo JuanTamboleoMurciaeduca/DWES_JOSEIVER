@@ -5,7 +5,7 @@ trait GeneraEtiqueta
 {
     public function etiqueta(string $prefijo = ''): string
     {
-        $nombreLimpio = preg_replace('/\s+/', ' ', trim($this->nombre())) ?? '';
+        $nombreLimpio = preg_replace('/\s+/u', ' ', trim($this->nombre())) ?? '';
         return $prefijo . $this->id() . ' · ' . $nombreLimpio;
     }
 }
